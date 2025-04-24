@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAJ Detergents Uganda - Shop</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="CAJ Detergents Logo">
+            <div>
+                <h1>CAJ Detergents Uganda</h1>
+                <p class="tagline">ENTITLED TO SERVING YOU THE BEST</p>
+            </div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Our Products</h1>
+        <div class="product-filters">
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+                <option value="liquid">Liquid Soap</option>
+                <option value="detergent">Detergents</option>
+                <option value="disinfectant">Disinfectants</option>
+            </select>
+        </div>
+        
+        <div class="product-grid">
+            <!-- Products will be loaded via JavaScript -->
+        </div>
+    </main>
+
+    <div id="cart-button" class="floating-cart">
+        <span id="cart-count">0</span>
+        <img src="assets/cart-icon.png" alt="Cart">
+    </div>
+
+    <footer>
+        <!-- Same footer as index.html -->
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/shop.js"></script>
+</body>
+</html>

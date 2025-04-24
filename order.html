@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAJ Detergents Uganda - Place Order</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/order.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="CAJ Detergents Logo">
+            <div>
+                <h1>CAJ Detergents Uganda</h1>
+                <p class="tagline">ENTITLED TO SERVING YOU THE BEST</p>
+            </div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Place Your Order</h1>
+        
+        <div class="order-container">
+            <div class="order-summary">
+                <h2>Order Summary</h2>
+                <div id="order-items">
+                    <!-- Cart items will be populated via JavaScript -->
+                </div>
+                <div class="order-total">
+                    <p>Total: <span id="order-total">UGX 0</span></p>
+                </div>
+            </div>
+            
+            <div class="customer-details">
+                <h2>Customer Information</h2>
+                <form id="order-form">
+                    <div class="form-group">
+                        <label for="customer-name">Full Name:</label>
+                        <input type="text" id="customer-name" name="customer-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-phone">Phone Number:</label>
+                        <input type="tel" id="customer-phone" name="customer-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-email">Email:</label>
+                        <input type="email" id="customer-email" name="customer-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-address">Delivery Address:</label>
+                        <textarea id="delivery-address" name="delivery-address" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-instructions">Special Instructions:</label>
+                        <textarea id="delivery-instructions" name="delivery-instructions" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Place Order</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <!-- Same footer as index.html -->
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/order.js"></script>
+</body>
+</html>
