@@ -1,5 +1,48 @@
+// admin.js
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCRR-dm2pTkb09WNalKrrDCD0HFgHHH0W4",
+  authDomain: "caj-website-256.firebaseapp.com",
+  projectId: "caj-website-256",
+  storageBucket: "caj-website-256.firebasestorage.app",
+  messagingSenderId: "138259158609",
+  appId: "1:138259158609:web:483bbdc82dd5abca884a70",
+  measurementId: "G-DHQCJ2C0FB"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// Auth Guard
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    // Redirect to login page if not authenticated
+    window.location.href = 'login.html';
+  }
+});
+
+// Logout logic
 document.addEventListener('DOMContentLoaded', () => {
-  // Navigation links
+  const logoutButton = document.getElementById('logout-btn');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html'; // Redirect to login after logout
+      } catch (error) {
+        console.error("Logout failed:", error);
+        alert("Logout failed. Please try again.");
+      }
+    });
+  }
+
+  // --- Existing Code Below ---
+  
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = document.querySelectorAll('.admin-section');
 
@@ -9,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const target = link.getAttribute('data-section');
 
       if (target) {
-        // Toggle active section
         sections.forEach(section => {
           section.classList.remove('active');
           if (section.id === target) {
@@ -17,14 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        // Highlight active link
         navLinks.forEach(nav => nav.classList.remove('active'));
         link.classList.add('active');
       }
     });
   });
 
-  // Modal controls
   const modal = document.getElementById('product-modal');
   const openModalBtn = document.getElementById('add-product-btn');
   const closeModalBtn = document.getElementById('close-modal');
@@ -47,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Dummy CRUD: Add product
   productForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -78,11 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     productList.appendChild(card);
     modal.style.display = 'none';
 
-    // Optional: attach handlers to new buttons
     attachActionHandlers(card);
   });
 
-  // Handle Edit/Delete Buttons
   function attachActionHandlers(card) {
     const editBtn = card.querySelector('.edit-btn');
     const deleteBtn = card.querySelector('.delete-btn');
@@ -103,12 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('modal-title').textContent = 'Edit Product';
       modal.style.display = 'flex';
 
-      // Remove and re-add on form submission
       productForm.onsubmit = function (e) {
         e.preventDefault();
         card.remove();
         productForm.dispatchEvent(new Event('submit'));
-        productForm.onsubmit = null; // reset to default behavior
+        productForm.onsubmit = null;
       };
     });
 
