@@ -1,9 +1,7 @@
-// admin.js - Fixed with SMAU-style auth logic
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-// Firebase config (your CAJ config)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCRR-dm2pTkb09WNalKrrDCD0HFgHHH0W4",
   authDomain: "caj-website-256.firebaseapp.com",
@@ -18,26 +16,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// EXACT SAME AUTH LOGIC AS SMAU
+// Auth check
 onAuthStateChanged(auth, user => {
   if (!user) {
-    // Not logged in - redirect to login (identical to SMAU)
     window.location.href = 'login.html';
     return;
   }
 
-  // Logged in - initialize admin panel
+  // If user is logged in, show admin panel
+  document.querySelector('.admin-container').style.display = 'flex';
   initAdminPanel();
 });
 
-// EXACT SAME LOGOUT LOGIC AS SMAU
+// Logout
 function setupLogout() {
   const logoutButton = document.getElementById('logout-btn');
   if (logoutButton) {
     logoutButton.addEventListener('click', async () => {
       try {
         await signOut(auth);
-        window.location.href = 'login.html'; 
+        window.location.href = 'login.html';
       } catch (error) {
         console.error("Logout failed:", error);
       }
@@ -45,11 +43,10 @@ function setupLogout() {
   }
 }
 
-// Your existing admin panel code - unchanged
+// Admin panel logic
 function initAdminPanel() {
   setupLogout();
-  
-  // --- Your Existing Code Below ---
+
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = document.querySelectorAll('.admin-section');
 
@@ -57,7 +54,6 @@ function initAdminPanel() {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const target = link.getAttribute('data-section');
-
       if (target) {
         sections.forEach(section => {
           section.classList.remove('active');
@@ -65,7 +61,6 @@ function initAdminPanel() {
             section.classList.add('active');
           }
         });
-
         navLinks.forEach(nav => nav.classList.remove('active'));
         link.classList.add('active');
       }
@@ -162,3 +157,4 @@ function initAdminPanel() {
     });
   }
 }
+
