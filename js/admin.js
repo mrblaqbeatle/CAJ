@@ -1,9 +1,9 @@
-// admin.js
+// admin.js - Fixed with SMAU-style auth logic
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-// Firebase config
+// Firebase config (your CAJ config)
 const firebaseConfig = {
   apiKey: "AIzaSyCRR-dm2pTkb09WNalKrrDCD0HFgHHH0W4",
   authDomain: "caj-website-256.firebaseapp.com",
@@ -18,31 +18,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Auth Guard
+// EXACT SAME AUTH LOGIC AS SMAU
 onAuthStateChanged(auth, user => {
   if (!user) {
-    // Redirect to login page if not authenticated
+    // Not logged in - redirect to login (identical to SMAU)
     window.location.href = 'login.html';
+    return;
   }
+
+  // Logged in - initialize admin panel
+  initAdminPanel();
 });
 
-// Logout logic
-document.addEventListener('DOMContentLoaded', () => {
+// EXACT SAME LOGOUT LOGIC AS SMAU
+function setupLogout() {
   const logoutButton = document.getElementById('logout-btn');
   if (logoutButton) {
     logoutButton.addEventListener('click', async () => {
       try {
         await signOut(auth);
-        window.location.href = 'login.html'; // Redirect to login after logout
+        window.location.href = 'login.html'; 
       } catch (error) {
         console.error("Logout failed:", error);
-        alert("Logout failed. Please try again.");
       }
     });
   }
+}
 
-  // --- Existing Code Below ---
+// Your existing admin panel code - unchanged
+function initAdminPanel() {
+  setupLogout();
   
+  // --- Your Existing Code Below ---
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = document.querySelectorAll('.admin-section');
 
@@ -71,13 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const productForm = document.getElementById('product-form');
   const productList = document.querySelector('.products-list');
 
-  openModalBtn.addEventListener('click', () => {
+  openModalBtn?.addEventListener('click', () => {
     modal.style.display = 'flex';
     productForm.reset();
     document.getElementById('modal-title').textContent = 'Add Product';
   });
 
-  closeModalBtn.addEventListener('click', () => {
+  closeModalBtn?.addEventListener('click', () => {
     modal.style.display = 'none';
   });
 
@@ -87,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  productForm.addEventListener('submit', (e) => {
+  productForm?.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const formData = new FormData(productForm);
@@ -124,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editBtn = card.querySelector('.edit-btn');
     const deleteBtn = card.querySelector('.delete-btn');
 
-    editBtn.addEventListener('click', () => {
+    editBtn?.addEventListener('click', () => {
       const name = card.querySelector('.product-name').textContent;
       const category = card.querySelector('.product-category').textContent;
       const price = card.querySelector('.product-price').textContent.replace(/[₱,]/g, '');
@@ -148,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    deleteBtn.addEventListener('click', () => {
+    deleteBtn?.addEventListener('click', () => {
       if (confirm('Are you sure you want to delete this product?')) {
         card.remove();
       }
     });
   }
-});
+}

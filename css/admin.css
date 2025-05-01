@@ -92,19 +92,24 @@
     display: block;
 }
 
+/* Logout Button Styles */
 .logout-btn {
-  background-color: #e53e3e;
+  background: #e74c3c;
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 5px;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s;
 }
 
 .logout-btn:hover {
-  background-color: #c53030;
+  background: #c0392b;
+}
+
+/* Initially hide admin container */
+.admin-container {
+  display: none; /* Will be shown by admin.js after auth */
 }
 
 /* Orders Section */

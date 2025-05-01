@@ -3,27 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel | Caj Detergents</title>
+  <title>Admin Panel | CAJ Detergents</title>
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-
-  <div class="admin-container">
+  <!-- Admin Container (initially hidden until auth verifies) -->
+  <div class="admin-container" style="display:none">
     
     <!-- Sidebar -->
     <aside class="admin-sidebar">
       <div class="admin-logo">
-        <img src="images/logo.png" alt="Caj Logo" />
+        <img src="images/logo.png" alt="CAJ Logo" />
         <h2>Admin Panel</h2>
       </div>
       <nav class="admin-nav">
         <ul>
-          <!--<li><a href="#" class="nav-link active" data-section="dashboard-section">Dashboard</a></li>-->
+          <li><a href="#" class="nav-link active" data-section="dashboard-section">Dashboard</a></li>
           <li><a href="#" class="nav-link" data-section="orders-section">Orders</a></li>
           <li><a href="#" class="nav-link" data-section="products-section">Products</a></li>
           <li><a href="#" class="nav-link" data-section="settings-section">Settings</a></li>
-          <li><a href="index.html">Home</a></li>
+          <!-- LOGOUT BUTTON IN SIDEBAR (BEST PRACTICE) -->
+          <li><button id="logout-btn" class="logout-btn">Logout</button></li>
         </ul>
       </nav>
     </aside>
@@ -34,24 +38,24 @@
       <!-- Dashboard Section -->
       <section id="dashboard-section" class="admin-section active">
         <h2>Welcome, Admin</h2>
-        <p>Use the sidebar to manage orders, products, and settings.</p><br>
+        <p>Use the sidebar to manage orders, products, and settings.</p>
         
-        <button id="logout-btn" class="logout-btn">Logout</button>
-        
+        <!-- ALTERNATIVE LOGOUT BUTTON LOCATION (optional) -->
+        <!-- <button id="logout-btn" class="logout-btn">Logout</button> -->
       </section>
 
       <!-- Orders Section -->
       <section id="orders-section" class="admin-section">
         <h2>Orders</h2>
         <div class="order-filters">
-          <select>
+          <select id="order-status-filter">
             <option value="">Filter by Status</option>
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
-          <input type="text" placeholder="Search orders..." />
+          <input type="text" id="order-search" placeholder="Search orders..." />
         </div>
         <div class="orders-list">
           <!-- Dynamic order entries will go here -->
@@ -61,7 +65,7 @@
       <!-- Products Section -->
       <section id="products-section" class="admin-section">
         <h2>Products</h2>
-        <button id="add-product-btn">Add Product</button>
+        <button id="add-product-btn" class="primary-btn">Add Product</button>
         <div class="products-list">
           <!-- Dynamic product entries will go here -->
         </div>
@@ -70,24 +74,25 @@
       <!-- Settings Section -->
       <section id="settings-section" class="admin-section">
         <h2>Settings</h2>
-        <p>This section will include preferences, password reset, and more.</p>
+        <div class="settings-grid">
+          <!-- Settings content here -->
+        </div>
       </section>
-
     </main>
   </div>
 
-  <!-- Modal for Add/Edit -->
+  <!-- Product Modal -->
   <div class="modal" id="product-modal">
     <div class="modal-content">
       <span class="close-modal" id="close-modal">&times;</span>
       <h3 id="modal-title">Add Product</h3>
       <form id="product-form">
-        <input type="text" name="name" placeholder="Product Name" required /><br/>
-        <input type="text" name="category" placeholder="Category" required /><br/>
-        <input type="number" name="price" placeholder="Price" required /><br/>
-        <input type="number" name="stock" placeholder="Stock Quantity" required /><br/>
-        <input type="url" name="image" placeholder="Image URL" /><br/>
-        <button type="submit">Save</button>
+        <input type="text" name="name" placeholder="Product Name" required />
+        <input type="text" name="category" placeholder="Category" required />
+        <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
+        <input type="number" name="stock" placeholder="Stock Quantity" min="0" required />
+        <input type="url" name="image" placeholder="Image URL" />
+        <button type="submit" class="primary-btn">Save Product</button>
       </form>
     </div>
   </div>
