@@ -1,69 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAJ Detergents - Admin Panel</title>
-    <link rel="stylesheet" href="css/admin.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - CAJ Detergents</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <!-- Firebase CDN v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <!-- Auth Guard (must run before anything else) -->
+  <script src="js/auth-guard.js"></script>
 </head>
 <body>
-    <!-- Admin Panel Layout -->
-    <div class="admin-container">
-        <!-- Sidebar (if applicable) -->
-        <nav class="sidebar">
-            <ul>
-                <li><a href="#" data-section="overview">Overview</a></li>
-                <li><a href="#" data-section="products">Products</a></li>
-                <li><a href="#" data-section="orders">Orders</a></li>
-                <li><button id="logout-btn">Logout</button></li>
-            </ul>
-        </nav>
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="#" data-section="products" class="active">Products</a>
+    <a href="#" data-section="orders">Orders</a>
+    <button id="logout-btn">Logout</button>
+  </div>
 
-        <!-- Main Content Area -->
-        <div class="main-content">
-            <div id="overview" class="admin-section">
-                <h2>Admin Dashboard Overview</h2>
-                <!-- Content related to the overview -->
-            </div>
+  <div class="main-content">
+    <section id="products" class="admin-section active">
+      <h1>Products</h1>
+      <button id="add-product-btn">Add Product</button>
+      <div class="products-list"></div>
+    </section>
 
-            <div id="products" class="admin-section">
-                <h2>Manage Products</h2>
-                <!-- Content related to products (form, list of products, etc.) -->
-            </div>
+    <section id="orders" class="admin-section">
+      <h1>Orders</h1>
+      <p>Order list placeholder</p>
+    </section>
+  </div>
 
-            <div id="orders" class="admin-section">
-                <h2>Manage Orders</h2>
-                <!-- Content related to orders -->
-            </div>
-        </div>
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <span id="close-modal">&times;</span>
+      <h2 id="modal-title">Add Product</h2>
+      <form id="product-form">
+        <input type="text" name="name" placeholder="Product Name" required>
+        <input type="text" name="category" placeholder="Category" required>
+        <input type="number" name="price" placeholder="Price" required>
+        <input type="number" name="stock" placeholder="Stock" required>
+        <input type="text" name="image" placeholder="Image URL">
+        <button type="submit">Save</button>
+      </form>
     </div>
+  </div>
 
-    <!-- Product Modal -->
-    <div id="product-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-title">Add Product</h3>
-            <form id="product-form">
-                <label for="name">Product Name:</label>
-                <input type="text" id="name" name="name" required>
-
-                <label for="category">Category:</label>
-                <input type="text" id="category" name="category" required>
-
-                <label for="price">Price:</label>
-                <input type="number" id="price" name="price" required>
-
-                <label for="stock">Stock:</label>
-                <input type="number" id="stock" name="stock" required>
-
-                <label for="image">Image URL:</label>
-                <input type="url" id="image" name="image">
-
-                <button type="submit">Submit</button>
-                <button type="button" id="close-modal">Close</button>
-            </form>
-        </div>
-    </div>
-
-    <script type="module" src="js/admin.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>
