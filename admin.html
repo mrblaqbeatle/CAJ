@@ -1,102 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel | CAJ Detergents</title>
-  <link rel="stylesheet" href="css/admin.css" />
-  <link rel="stylesheet" href="css/style.css" />
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAJ Detergents - Admin Panel</title>
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-  <!-- Admin Container (initially hidden until auth verifies) -->
-  <div class="admin-container" style="display:none">
-    
-    <!-- Sidebar -->
-    <aside class="admin-sidebar">
-      <div class="admin-logo">
-        <img src="images/logo.png" alt="CAJ Logo" />
-        <h2>Admin Panel</h2>
-      </div>
-      <nav class="admin-nav">
-        <ul>
-          <li><a href="#" class="nav-link active" data-section="dashboard-section">Dashboard</a></li>
-          <li><a href="#" class="nav-link" data-section="orders-section">Orders</a></li>
-          <li><a href="#" class="nav-link" data-section="products-section">Products</a></li>
-          <li><a href="#" class="nav-link" data-section="settings-section">Settings</a></li>
-          <!-- LOGOUT BUTTON IN SIDEBAR (BEST PRACTICE) -->
-          <li><button id="logout-btn" class="logout-btn">Logout</button></li>
-        </ul>
-      </nav>
-    </aside>
+    <!-- Admin Panel Layout -->
+    <div class="admin-container">
+        <!-- Sidebar (if applicable) -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#" data-section="overview">Overview</a></li>
+                <li><a href="#" data-section="products">Products</a></li>
+                <li><a href="#" data-section="orders">Orders</a></li>
+                <li><button id="logout-btn">Logout</button></li>
+            </ul>
+        </nav>
 
-    <!-- Main Content -->
-    <main class="admin-main">
-      
-      <!-- Dashboard Section -->
-      <section id="dashboard-section" class="admin-section active">
-        <h2>Welcome, Admin</h2>
-        <p>Use the sidebar to manage orders, products, and settings.</p>
-        
-        <!-- ALTERNATIVE LOGOUT BUTTON LOCATION (optional) -->
-        <!-- <button id="logout-btn" class="logout-btn">Logout</button> -->
-      </section>
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div id="overview" class="admin-section">
+                <h2>Admin Dashboard Overview</h2>
+                <!-- Content related to the overview -->
+            </div>
 
-      <!-- Orders Section -->
-      <section id="orders-section" class="admin-section">
-        <h2>Orders</h2>
-        <div class="order-filters">
-          <select id="order-status-filter">
-            <option value="">Filter by Status</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <input type="text" id="order-search" placeholder="Search orders..." />
+            <div id="products" class="admin-section">
+                <h2>Manage Products</h2>
+                <!-- Content related to products (form, list of products, etc.) -->
+            </div>
+
+            <div id="orders" class="admin-section">
+                <h2>Manage Orders</h2>
+                <!-- Content related to orders -->
+            </div>
         </div>
-        <div class="orders-list">
-          <!-- Dynamic order entries will go here -->
-        </div>
-      </section>
-
-      <!-- Products Section -->
-      <section id="products-section" class="admin-section">
-        <h2>Products</h2>
-        <button id="add-product-btn" class="primary-btn">Add Product</button>
-        <div class="products-list">
-          <!-- Dynamic product entries will go here -->
-        </div>
-      </section>
-
-      <!-- Settings Section -->
-      <section id="settings-section" class="admin-section">
-        <h2>Settings</h2>
-        <div class="settings-grid">
-          <!-- Settings content here -->
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Product Modal -->
-  <div class="modal" id="product-modal">
-    <div class="modal-content">
-      <span class="close-modal" id="close-modal">&times;</span>
-      <h3 id="modal-title">Add Product</h3>
-      <form id="product-form">
-        <input type="text" name="name" placeholder="Product Name" required />
-        <input type="text" name="category" placeholder="Category" required />
-        <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
-        <input type="number" name="stock" placeholder="Stock Quantity" min="0" required />
-        <input type="url" name="image" placeholder="Image URL" />
-        <button type="submit" class="primary-btn">Save Product</button>
-      </form>
     </div>
-  </div>
 
-  <script src="js/admin.js"></script>
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Add Product</h3>
+            <form id="product-form">
+                <label for="name">Product Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="category">Category:</label>
+                <input type="text" id="category" name="category" required>
+
+                <label for="price">Price:</label>
+                <input type="number" id="price" name="price" required>
+
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" required>
+
+                <label for="image">Image URL:</label>
+                <input type="url" id="image" name="image">
+
+                <button type="submit">Submit</button>
+                <button type="button" id="close-modal">Close</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
 </body>
 </html>
