@@ -1,3 +1,4 @@
+// js/shop.js
 document.addEventListener('DOMContentLoaded', function() {
   loadProducts();
   setupFilters();
@@ -25,6 +26,8 @@ function loadProducts(category = 'all', sortBy = 'createdAt-desc') {
       const product = { id: doc.id, ...doc.data() };
       displayProduct(product);
     });
+    // Reattach Add to Cart listeners after products are rendered
+    attachCartButtonListeners();
     loadingSpinner.classList.remove('active');
   }, error => {
     loadingSpinner.classList.remove('active');
@@ -63,6 +66,33 @@ function setupFilters() {
   });
 }
 
+function attachCartButtonListeners() {
+  document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    // Remove existing listeners to prevent duplicates
+    button.removeEventListener('click', handleAddToCart);
+    button.addEventListener('click', handleAddToCart);
+  });
+}
+
+function handleAddToCart(event) {
+  const button = event.target;
+  const productId = button.dataset.id;
+  const card = button.closest('.shop-product-card');
+  const name = card.querySelector('h3').textContent;
+  // Robust price parsing
+  const priceText = card.querySelector('.shop-product-price').textContent.replace('UGX ', '').replace(/,/g, '');
+  const price = parseFloat(priceText);
+  const image = card.querySelector('img').src;
+
+  if (!productId || !name || isNaN(price) || !image) {
+    console.error('Invalid product data:', { productId, name, price, image });
+    alert('Failed to add item to cart. Please try again.');
+    return;
+  }
+
+  addToCart(productId, name, price, image);
+}
+
 function addToCart(productId, name, price, image) {
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
   const existingItem = cart.find(item => item.productId === productId);
@@ -73,8 +103,13 @@ function addToCart(productId, name, price, image) {
     cart.push({ productId, name, price, image, quantity: 1 });
   }
 
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartCount();
+  try {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+  } catch (error) {
+    console.error('Failed to update cart:', error);
+    alert('Error saving cart. Please try again.');
+  }
 }
 
 function updateCartItemQuantity(productId, newQuantity) {
@@ -106,23 +141,19 @@ function getCartTotal() {
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('cart')) || [];
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  document.getElementById('cart-count').textContent = totalItems;
+  const cartCount = document.getElementById('cart-count');
+  if (cartCount) {
+    cartCount.textContent = totalItems;
+  }
 }
 
 function setupCartButton() {
-  document.getElementById('cart-button').addEventListener('click', () => {
-    window.location.href = 'order.html';
-  });
-  document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-    button.addEventListener('click', () => {
-      const productId = button.dataset.id;
-      const card = button.closest('.shop-product-card');
-      const name = card.querySelector('h3').textContent;
-      const price = parseFloat(card.querySelector('.shop-product-price').textContent.replace('UGX ', '').replace(',', ''));
-      const image = card.querySelector('img').src;
-      addToCart(productId, name, price, image);
+  const cartButton = document.getElementById('cart-button');
+  if (cartButton) {
+    cartButton.addEventListener('click', () => {
+      window.location.href = 'order.html';
     });
-  });
+  }
   updateCartCount();
 }
 
