@@ -46,8 +46,19 @@
       <section id="orders" class="admin-section">
         <header class="section-header">
           <h1>Orders</h1>
+          <div class="controls">
+            <select id="status-filter" aria-label="Filter Orders by Status">
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+            </select>
+          </div>
         </header>
-        <p>Order list placeholder</p>
+        <div class="loading-spinner" id="orders-loading"></div>
+        <div class="error-message" id="orders-error" aria-live="polite"></div>
+        <div class="orders-list"></div>
       </section>
     </main>
   </div>
@@ -65,7 +76,11 @@
         </div>
         <div class="form-group">
           <label for="category">Category</label>
-          <input type="text" name="category" id="category" placeholder="Category" required>
+          <select name="category" id="category" required>
+            <option value="liquid">Liquid Soap</option>
+            <option value="detergent">Detergents</option>
+            <option value="disinfectant">Disinfectants</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="price">Price (UGX)</label>
@@ -83,6 +98,26 @@
         </div>
         <button type="submit" class="save-btn">Save</button>
       </form>
+    </div>
+  </div>
+
+  <div class="modal" id="order-modal">
+    <div class="modal-content">
+      <button id="order-close-modal" aria-label="Close Modal">×</button>
+      <h2>Order Details</h2>
+      <div class="loading-spinner" id="order-modal-loading"></div>
+      <div class="error-message" id="order-modal-error" aria-live="polite"></div>
+      <div id="order-details"></div>
+      <div class="form-group">
+        <label for="order-status">Status</label>
+        <select id="order-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </div>
+      <button id="update-order-status" class="save-btn">Update Status</button>
     </div>
   </div>
 

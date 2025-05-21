@@ -1,17 +1,5 @@
-// Firebase config from SMAU project
-const firebaseConfig = {
-  apiKey: "AIzaSyDcxwqjoFEUYKTwiuQKMkAfG9y9HZFPCVg",
-  authDomain: "smau-256.firebaseapp.com",
-  databaseURL: "https://smau-256-default-rtdb.firebaseio.com",
-  projectId: "smau-256",
-  storageBucket: "smau-256.firebasestorage.app",
-  messagingSenderId: "76824679086",
-  appId: "1:76824679086:web:c15949b85fa59e9dc3533f",
-  measurementId: "G-LFRPZYFLG5"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// js/login.js
+// Relies on firebase-config.js for Firebase initialization
 const auth = firebase.auth();
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -22,10 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const buttonText = document.getElementById('buttonText');
   const spinner = document.getElementById('spinner');
   const loginError = document.getElementById('login-error');
-
-  auth.onAuthStateChanged(user => {
-    if (user) window.location.href = 'admin.html';
-  });
 
   loginForm.addEventListener('submit', async function (e) {
     e.preventDefault();

@@ -2,7 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLogout();
   setupNavigation();
   setupProductModal();
+  setupOrderModal();
   loadProducts();
+  loadOrders();
 });
 
 function setupLogout() {
@@ -28,6 +30,8 @@ function setupNavigation() {
       document.getElementById(target).classList.add('active');
       navLinks.forEach(nav => nav.classList.remove('active'));
       link.classList.add('active');
+      if (target === 'products') loadProducts();
+      if (target === 'orders') loadOrders();
     });
   });
 }
@@ -53,7 +57,7 @@ function loadProducts(sortBy = 'createdAt-desc') {
     loadingSpinner.classList.remove('active');
   }, error => {
     loadingSpinner.classList.remove('active');
-    showError('products-error', 'Failed to load products.');
+    showError('products-error', 'Failed to load products: ' + error.message);
   });
 
   document.getElementById('sort-filter').addEventListener('change', (e) => {
@@ -81,7 +85,6 @@ function createProductCard(product) {
     </div>
   `;
   productList.appendChild(card);
-  attachActionHandlers(card);
 }
 
 function setupProductModal() {
@@ -103,7 +106,7 @@ function setupProductModal() {
     imageError.style.display = 'none';
     modalError.style.display = 'none';
     document.getElementById('modal-title').textContent = 'Add Product';
-    productForm.onsubmit = null;
+    productForm.dataset.mode = 'add';
   });
 
   closeModalBtn.addEventListener('click', () => {
@@ -135,7 +138,7 @@ function setupProductModal() {
         imageInput.value = '';
         return;
       }
-      if (file.size > 500 * 1024) { // 500 KB limit
+      if (file.size > 500 * 1024) {
         imageError.textContent = 'Image file size must be less than 500 KB.';
         imageError.style.display = 'block';
         imageInput.value = '';
@@ -173,21 +176,25 @@ function setupProductModal() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
+    const mode = productForm.dataset.mode;
+    const productId = mode === 'edit' ? productForm.dataset.id : db.collection('products').doc().id;
+
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        productData.image = e.target.result; // Base64 string
-        saveProduct(db.collection('products').doc().id, productData);
+        productData.image = e.target.result;
+        saveProduct(productId, productData, mode);
       };
       reader.readAsDataURL(file);
     } else {
-      productData.image = 'images/placeholder.png';
-      saveProduct(db.collection('products').doc().id, productData);
+      productData.image = mode === 'edit' ? productForm.dataset.image : 'images/placeholder.png';
+      saveProduct(productId, productData, mode);
     }
   });
 
-  function saveProduct(productId, productData) {
-    db.collection('products').doc(productId).set(productData)
+  function saveProduct(productId, productData, mode) {
+    const operation = mode === 'edit' ? db.collection('products').doc(productId).set(productData) : db.collection('products').doc(productId).set(productData);
+    operation
       .then(() => {
         modalLoading.classList.remove('active');
         modal.style.display = 'none';
@@ -197,96 +204,187 @@ function setupProductModal() {
       })
       .catch(error => {
         modalLoading.classList.remove('active');
-        showError('modal-error', 'Failed to save product.');
+        showError('modal-error', 'Failed to save product: ' + error.message);
       });
   }
+}
 
-  function attachActionHandlers(card) {
-    const editBtn = card.querySelector('.edit-btn');
-    const deleteBtn = card.querySelector('.delete-btn');
-    const productId = card.getAttribute('data-id');
+function loadOrders(status = 'all') {
+  const orderList = document.querySelector('.orders-list');
+  const loadingSpinner = document.getElementById('orders-loading');
+  const errorMessage = document.getElementById('orders-error');
 
-    editBtn.addEventListener('click', () => {
-      modalLoading.classList.add('active');
-      modalError.classList.remove('active');
-      db.collection('products').doc(productId).get().then(doc => {
-        modalLoading.classList.remove('active');
-        if (doc.exists) {
-          const product = doc.data();
-          productForm.name.value = product.name;
-          productForm.category.value = product.category;
-          productForm.price.value = product.price;
-          productForm.stock.value = product.stock;
-          imagePreview.innerHTML = product.image ? `<img src="${product.image}" alt="Preview">` : '';
-          imagePreview.style.display = product.image ? 'block' : 'none';
-          imageError.style.display = 'none';
-          document.getElementById('modal-title').textContent = 'Edit Product';
-          modal.style.display = 'flex';
+  loadingSpinner.classList.add('active');
+  errorMessage.classList.remove('active');
 
-          productForm.onsubmit = function (e) {
-            e.preventDefault();
-            modalLoading.classList.add('active');
-            modalError.classList.remove('active');
-
-            const formData = new FormData(productForm);
-            const updatedData = {
-              name: formData.get('name'),
-              category: formData.get('category'),
-              price: parseFloat(formData.get('price')),
-              stock: parseInt(formData.get('stock')),
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (imageInput.files[0]) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                updatedData.image = e.target.result;
-                updateProduct(productId, updatedData);
-              };
-              reader.readAsDataURL(imageInput.files[0]);
-            } else {
-              updatedData.image = product.image || 'images/placeholder.png';
-              updateProduct(productId, updatedData);
-            }
-          };
-        }
-      }).catch(error => {
-        modalLoading.classList.remove('active');
-        showError('modal-error', 'Failed to load product.');
-      });
-    });
-
-    deleteBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to delete this product?')) {
-        modalLoading.classList.add('active');
-        modalError.classList.remove('active');
-        db.collection('products').doc(productId).delete().then(() => {
-          modalLoading.classList.remove('active');
-        }).catch(error => {
-          modalLoading.classList.remove('active');
-          showError('modal-error', 'Failed to delete product.');
-        });
-      }
-    });
+  let query = db.collection('orders').orderBy('createdAt', 'desc');
+  if (status !== 'all') {
+    query = query.where('status', '==', status);
   }
 
-  function updateProduct(productId, updatedData) {
-    db.collection('products').doc(productId).set(updatedData).then(() => {
-      modalLoading.classList.remove('active');
+  query.onSnapshot(snapshot => {
+    orderList.innerHTML = '';
+    snapshot.forEach(doc => {
+      const order = { id: doc.id, ...doc.data() };
+      createOrderCard(order);
+    });
+    loadingSpinner.classList.remove('active');
+  }, error => {
+    loadingSpinner.classList.remove('active');
+    showError('orders-error', 'Failed to load orders: ' + error.message);
+  });
+
+  document.getElementById('status-filter').addEventListener('change', (e) => {
+    loadOrders(e.target.value);
+  });
+}
+
+function createOrderCard(order) {
+  const orderList = document.querySelector('.orders-list');
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.setAttribute('data-id', order.id);
+  card.innerHTML = `
+    <div class="product-info">
+      <div class="product-name">Order #${order.id}</div>
+      <div class="product-category">Customer: ${order.customer.name}</div>
+      <div class="product-price">Total: UGX ${order.total.toLocaleString()}</div>
+      <div class="product-stock">Status: ${order.status}</div>
+      <div class="product-added">Date: ${new Date(order.createdAt.toDate()).toLocaleString()}</div>
+    </div>
+    <div class="product-actions">
+      <button class="edit-btn view-order-btn" aria-label="View Order">View</button>
+    </div>
+  `;
+  orderList.appendChild(card);
+}
+
+function setupOrderModal() {
+  const modal = document.getElementById('order-modal');
+  const closeModalBtn = document.getElementById('order-close-modal');
+  const updateStatusBtn = document.getElementById('update-order-status');
+  const modalLoading = document.getElementById('order-modal-loading');
+  const modalError = document.getElementById('order-modal-error');
+
+  closeModalBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
       modal.style.display = 'none';
-      productForm.reset();
-      imagePreview.innerHTML = '';
-      imagePreview.style.display = 'none';
-      productForm.onsubmit = null;
+    }
+  });
+
+  updateStatusBtn.addEventListener('click', () => {
+    const orderId = modal.dataset.id;
+    const newStatus = document.getElementById('order-status').value;
+    modalLoading.classList.add('active');
+    modalError.classList.remove('active');
+
+    db.collection('orders').doc(orderId).update({ status: newStatus })
+      .then(() => {
+        modalLoading.classList.remove('active');
+        modal.style.display = 'none';
+      })
+      .catch(error => {
+        modalLoading.classList.remove('active');
+        showError('order-modal-error', 'Failed to update status: ' + error.message);
+      });
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('edit-btn')) {
+    const card = e.target.closest('.product-card');
+    const productId = card.dataset.id;
+    const modal = document.getElementById('product-modal');
+    const productForm = document.getElementById('product-form');
+    const modalLoading = document.getElementById('modal-loading');
+    const modalError = document.getElementById('modal-error');
+
+    modalLoading.classList.add('active');
+    modalError.classList.remove('active');
+    db.collection('products').doc(productId).get().then(doc => {
+      modalLoading.classList.remove('active');
+      if (doc.exists) {
+        const product = doc.data();
+        productForm.name.value = product.name;
+        productForm.category.value = product.category;
+        productForm.price.value = product.price;
+        productForm.stock.value = product.stock;
+        productForm.dataset.image = product.image;
+        productForm.dataset.id = productId;
+        productForm.dataset.mode = 'edit';
+        document.getElementById('image-preview').innerHTML = product.image ? `<img src="${product.image}" alt="Preview">` : '';
+        document.getElementById('image-preview').style.display = product.image ? 'block' : 'none';
+        document.getElementById('image-error').style.display = 'none';
+        document.getElementById('modal-title').textContent = 'Edit Product';
+        modal.style.display = 'flex';
+      }
     }).catch(error => {
       modalLoading.classList.remove('active');
-      showError('modal-error', 'Failed to update product.');
+      showError('modal-error', 'Failed to load product: ' + error.message);
     });
   }
 
-  function showError(elementId, message) {
-    const errorElement = document.getElementById(elementId);
-    errorElement.textContent = message;
-    errorElement.classList.add('active');
+  if (e.target.classList.contains('delete-btn')) {
+    const card = e.target.closest('.product-card');
+    const productId = card.dataset.id;
+    if (confirm('Are you sure you want to delete this product?')) {
+      const modalLoading = document.getElementById('modal-loading');
+      const modalError = document.getElementById('modal-error');
+      modalLoading.classList.add('active');
+      modalError.classList.remove('active');
+      db.collection('products').doc(productId).delete().then(() => {
+        modalLoading.classList.remove('active');
+      }).catch(error => {
+        modalLoading.classList.remove('active');
+        showError('modal-error', 'Failed to delete product: ' + error.message);
+      });
+    }
   }
+
+  if (e.target.classList.contains('view-order-btn')) {
+    const card = e.target.closest('.product-card');
+    const orderId = card.dataset.id;
+    const modal = document.getElementById('order-modal');
+    const details = document.getElementById('order-details');
+    const statusSelect = document.getElementById('order-status');
+    const modalLoading = document.getElementById('order-modal-loading');
+    const modalError = document.getElementById('order-modal-error');
+
+    modalLoading.classList.add('active');
+    modalError.classList.remove('active');
+    db.collection('orders').doc(orderId).get().then(doc => {
+      modalLoading.classList.remove('active');
+      if (doc.exists) {
+        const order = doc.data();
+        details.innerHTML = `
+          <p><strong>Customer:</strong> ${order.customer.name}</p>
+          <p><strong>Phone:</strong> ${order.customer.phone}</p>
+          <p><strong>Email:</strong> ${order.customer.email || 'N/A'}</p>
+          <p><strong>Address:</strong> ${order.customer.address}</p>
+          <p><strong>Instructions:</strong> ${order.customer.instructions || 'None'}</p>
+          <p><strong>Total:</strong> UGX ${order.total.toLocaleString()}</p>
+          <p><strong>Items:</strong></p>
+          <ul>
+            ${order.items.map(item => `<li>${item.name} (x${item.quantity}) - UGX ${item.price.toLocaleString()}</li>`).join('')}
+          </ul>
+        `;
+        statusSelect.value = order.status;
+        modal.dataset.id = orderId;
+        modal.style.display = 'flex';
+      }
+    }).catch(error => {
+      modalLoading.classList.remove('active');
+      showError('order-modal-error', 'Failed to load order: ' + error.message);
+    });
+  }
+});
+
+function showError(elementId, message) {
+  const errorElement = document.getElementById(elementId);
+  errorElement.textContent = message;
+  errorElement.classList.add('active');
 }
