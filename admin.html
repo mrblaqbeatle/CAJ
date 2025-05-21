@@ -8,7 +8,9 @@
   <!-- Firebase CDN v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <!-- Auth Guard (must run before anything else) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <!-- Auth Guard -->
   <script src="js/auth-guard.js"></script>
 </head>
 <body>
@@ -26,8 +28,18 @@
       <section id="products" class="admin-section active">
         <header class="section-header">
           <h1>Products</h1>
-          <button id="add-product-btn" aria-label="Add Product">Add Product</button>
+          <div class="controls">
+            <select id="sort-filter" aria-label="Sort Products">
+              <option value="createdAt-desc">Date Added (Newest)</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="price-asc">Price (Low to High)</option>
+              <option value="price-desc">Price (High to Low)</option>
+            </select>
+            <button id="add-product-btn" aria-label="Add Product">Add Product</button>
+          </div>
         </header>
+        <div class="loading-spinner" id="products-loading"></div>
+        <div class="error-message" id="products-error" aria-live="polite"></div>
         <div class="products-list"></div>
       </section>
 
@@ -44,6 +56,8 @@
     <div class="modal-content">
       <button id="close-modal" aria-label="Close Modal">×</button>
       <h2 id="modal-title">Add Product</h2>
+      <div class="loading-spinner" id="modal-loading"></div>
+      <div class="error-message" id="modal-error" aria-live="polite"></div>
       <form id="product-form">
         <div class="form-group">
           <label for="name">Product Name</label>
@@ -54,7 +68,7 @@
           <input type="text" name="category" id="category" placeholder="Category" required>
         </div>
         <div class="form-group">
-          <label for="price">Price</label>
+          <label for="price">Price (UGX)</label>
           <input type="number" name="price" id="price" placeholder="Price" required step="0.01">
         </div>
         <div class="form-group">

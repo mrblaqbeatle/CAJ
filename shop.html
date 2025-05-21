@@ -6,6 +6,10 @@
     <title>CAJ Detergents Uganda - Shop</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/shop.css">
+    <!-- Firebase CDN v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
 </head>
 <body>
     <header>
@@ -18,8 +22,8 @@
         </div>
         <nav>
             <ul>
-                <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="shop.html">Shop</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html" class="active">Shop</a></li>
                 <li><a href="contact.html">Contact Us</a></li>
             </ul>
         </nav>
@@ -28,26 +32,31 @@
     <main>
         <h1>Our Products</h1>
         <div class="product-filters">
-            <select id="category-filter">
+            <select id="category-filter" aria-label="Filter by Category">
                 <option value="all">All Categories</option>
                 <option value="liquid">Liquid Soap</option>
                 <option value="detergent">Detergents</option>
                 <option value="disinfectant">Disinfectants</option>
             </select>
+            <select id="sort-filter" aria-label="Sort Products">
+                <option value="createdAt-desc">Date Added (Newest)</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+            </select>
         </div>
-        
-        <div class="product-grid">
-            <!-- Products will be loaded via JavaScript -->
-        </div>
+        <div class="loading-spinner" id="products-loading"></div>
+        <div class="error-message" id="products-error" aria-live="polite"></div>
+        <div class="product-grid"></div>
     </main>
 
     <div id="cart-button" class="floating-cart">
         <span id="cart-count">0</span>
-        <img src="assets/cart-icon.png" alt="Cart">
+        <img src="images/cart-icon.png" alt="Cart">
     </div>
 
     <footer>
-        <!-- Same footer as index.html --> <div class="contact-info">
+        <div class="contact-info">
             <h3>Contact Us</h3>
             <p>Email: cajdetergentsuganda@gmail.com</p>
             <p>Phone: +256 786 048292</p>
@@ -57,7 +66,7 @@
             <a href="#"><img src="images/1691832708new-twitter-x-logo-white.png" alt="Twitter"></a>
             <a href="#"><img src="images/insta.png" alt="Instagram"></a>
         </div>
-        <p class="copyright">&copy; 2025 CAJ Detergents Uganda. All rights reserved.</p>
+        <p class="copyright">© 2025 CAJ Detergents Uganda. All rights reserved.</p>
     </footer>
 
     <script src="js/main.js"></script>
