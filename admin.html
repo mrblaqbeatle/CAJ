@@ -12,37 +12,60 @@
   <script src="js/auth-guard.js"></script>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Admin Panel</h2>
-    <a href="#" data-section="products" class="active">Products</a>
-    <a href="#" data-section="orders">Orders</a>
-    <button id="logout-btn">Logout</button>
-  </div>
+  <div class="admin-container">
+    <aside class="sidebar">
+      <h2>Admin Panel</h2>
+      <ul>
+        <li><a href="#" data-section="products" class="active"><span class="icon">📦</span> Products</a></li>
+        <li><a href="#" data-section="orders"><span class="icon">📋</span> Orders</a></li>
+      </ul>
+      <button id="logout-btn" aria-label="Logout"><span class="icon">🚪</span> Logout</button>
+    </aside>
 
-  <div class="main-content">
-    <section id="products" class="admin-section active">
-      <h1>Products</h1>
-      <button id="add-product-btn">Add Product</button>
-      <div class="products-list"></div>
-    </section>
+    <main class="main-content">
+      <section id="products" class="admin-section active">
+        <header class="section-header">
+          <h1>Products</h1>
+          <button id="add-product-btn" aria-label="Add Product">Add Product</button>
+        </header>
+        <div class="products-list"></div>
+      </section>
 
-    <section id="orders" class="admin-section">
-      <h1>Orders</h1>
-      <p>Order list placeholder</p>
-    </section>
+      <section id="orders" class="admin-section">
+        <header class="section-header">
+          <h1>Orders</h1>
+        </header>
+        <p>Order list placeholder</p>
+      </section>
+    </main>
   </div>
 
   <div class="modal" id="product-modal">
     <div class="modal-content">
-      <span id="close-modal">&times;</span>
+      <button id="close-modal" aria-label="Close Modal">×</button>
       <h2 id="modal-title">Add Product</h2>
       <form id="product-form">
-        <input type="text" name="name" placeholder="Product Name" required>
-        <input type="text" name="category" placeholder="Category" required>
-        <input type="number" name="price" placeholder="Price" required>
-        <input type="number" name="stock" placeholder="Stock" required>
-        <input type="text" name="image" placeholder="Image URL">
-        <button type="submit">Save</button>
+        <div class="form-group">
+          <label for="name">Product Name</label>
+          <input type="text" name="name" id="name" placeholder="Product Name" required>
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <input type="text" name="category" id="category" placeholder="Category" required>
+        </div>
+        <div class="form-group">
+          <label for="price">Price</label>
+          <input type="number" name="price" id="price" placeholder="Price" required step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="stock">Stock</label>
+          <input type="number" name="stock" id="stock" placeholder="Stock" required>
+        </div>
+        <div class="form-group">
+          <label for="image">Image URL</label>
+          <input type="text" name="image" id="image" placeholder="Image URL (optional)">
+        </div>
+        <button type="submit" class="save-btn">Save</button>
       </form>
     </div>
   </div>

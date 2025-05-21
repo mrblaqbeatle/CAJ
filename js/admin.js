@@ -41,6 +41,7 @@ function setupProductModal() {
     modal.style.display = 'flex';
     productForm.reset();
     document.getElementById('modal-title').textContent = 'Add Product';
+    productForm.onsubmit = null; // Reset form submission handler
   });
 
   closeModalBtn.addEventListener('click', () => {
@@ -73,8 +74,8 @@ function setupProductModal() {
         <div class="product-stock">${stock} in stock</div>
       </div>
       <div class="product-actions">
-        <button class="edit-btn">Edit</button>
-        <button class="delete-btn">Delete</button>
+        <button class="edit-btn" aria-label="Edit Product">Edit</button>
+        <button class="delete-btn" aria-label="Delete Product">Delete</button>
       </div>
     `;
     productList.appendChild(card);
