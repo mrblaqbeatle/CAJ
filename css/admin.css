@@ -364,6 +364,26 @@ input[type="file"] {
     display: block;
 }
 
+.badge {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  margin-left: 5px;
+}
+.badge.hidden {
+  display: none;
+}
+.product-details {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+.product-details ul {
+  list-style: disc;
+  margin-left: 1.5rem;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

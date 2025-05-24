@@ -145,6 +145,60 @@ h1 {
     resize: vertical;
 }
 
+.required {
+  color: #dc3545;
+}
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+#close-confirmation-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+#confirmation-details {
+  margin-bottom: 1rem;
+}
+#confirmation-details ul {
+  list-style: disc;
+  margin-left: 1.5rem;
+}
+#return-home {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 900px) {
     .order-container {

@@ -1,3 +1,4 @@
+// js/admin.js
 document.addEventListener('DOMContentLoaded', () => {
   setupLogout();
   setupNavigation();
@@ -5,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupOrderModal();
   loadProducts();
   loadOrders();
+  setupNewOrdersBadge();
 });
 
 function setupLogout() {
@@ -31,9 +33,28 @@ function setupNavigation() {
       navLinks.forEach(nav => nav.classList.remove('active'));
       link.classList.add('active');
       if (target === 'products') loadProducts();
-      if (target === 'orders') loadOrders();
+      if (target === 'orders') {
+        loadOrders();
+        // Clear badge when viewing Orders
+        const badge = document.getElementById('new-orders-badge');
+        badge.textContent = '0';
+        badge.classList.add('hidden');
+      }
     });
   });
+}
+
+function setupNewOrdersBadge() {
+  const badge = document.getElementById('new-orders-badge');
+  db.collection('orders')
+    .where('status', '==', 'pending')
+    .onSnapshot(snapshot => {
+      let pendingCount = snapshot.size;
+      badge.textContent = pendingCount;
+      badge.classList.toggle('hidden', pendingCount === 0);
+    }, error => {
+      console.error('Failed to fetch pending orders:', error);
+    });
 }
 
 function loadProducts(sortBy = 'createdAt-desc') {
@@ -246,11 +267,17 @@ function createOrderCard(order) {
   card.setAttribute('data-id', order.id);
   card.innerHTML = `
     <div class="product-info">
-      <div class="product-name">Order #${order.id}</div>
+      <div class="product-name">Order #${order.orderId}</div>
       <div class="product-category">Customer: ${order.customer.name}</div>
       <div class="product-price">Total: UGX ${order.total.toLocaleString()}</div>
       <div class="product-stock">Status: ${order.status}</div>
       <div class="product-added">Date: ${new Date(order.createdAt.toDate()).toLocaleString()}</div>
+      <div class="product-details">
+        <p><strong>Items:</strong></p>
+        <ul>
+          ${order.items.map(item => `<li>${item.name} (x${item.quantity}) - UGX ${item.price.toLocaleString()}</li>`).join('')}
+        </ul>
+      </div>
     </div>
     <div class="product-actions">
       <button class="edit-btn view-order-btn" aria-label="View Order">View</button>
@@ -295,7 +322,7 @@ function setupOrderModal() {
 }
 
 document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('edit-btn')) {
+  if (e.target.classList.contains('edit-btn') && !e.target.classList.contains('view-order-btn')) {
     const card = e.target.closest('.product-card');
     const productId = card.dataset.id;
     const modal = document.getElementById('product-modal');
@@ -361,6 +388,7 @@ document.addEventListener('click', (e) => {
       if (doc.exists) {
         const order = doc.data();
         details.innerHTML = `
+          <p><strong>Order #${order.orderId}</strong></p>
           <p><strong>Customer:</strong> ${order.customer.name}</p>
           <p><strong>Phone:</strong> ${order.customer.phone}</p>
           <p><strong>Email:</strong> ${order.customer.email || 'N/A'}</p>

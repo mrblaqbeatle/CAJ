@@ -1,4 +1,6 @@
-// order.js - Order Page Specific JavaScript
+// js/order.js
+// Initialize EmailJS with your public key
+emailjs.init('pgYzRP8y_b1l2VIcg'); // Replace with your EmailJS public key
 
 document.addEventListener('DOMContentLoaded', function() {
   loadCartItems();
@@ -66,20 +68,28 @@ function loadCartItems() {
 
 function setupOrderForm() {
   const orderForm = document.getElementById('order-form');
+  const modal = document.getElementById('order-confirmation-modal');
+  const closeModalBtn = document.getElementById('close-confirmation-modal');
+  const returnHomeBtn = document.getElementById('return-home');
+
   if (orderForm) {
-    orderForm.addEventListener('submit', function(e) {
+    orderForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const name = document.getElementById('customer-name').value;
-      const phone = document.getElementById('customer-phone').value;
-      const email = document.getElementById('customer-email').value;
-      const address = document.getElementById('delivery-address').value;
-      const instructions = document.getElementById('delivery-instructions').value;
+      const name = document.getElementById('customer-name').value.trim();
+      const phone = document.getElementById('customer-phone').value.trim();
+      const email = document.getElementById('customer-email').value.trim();
+      const address = document.getElementById('delivery-address').value.trim();
+      const instructions = document.getElementById('delivery-instructions').value.trim();
+
+      if (!validateForm(name, phone, email, address)) return;
 
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       const total = getCartTotal();
+      const orderId = db.collection('orders').doc().id; // Generate Firestore doc ID
 
       const order = {
+        orderId, // Store orderId for reference
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         customer: { name, phone, email, address, instructions },
         items: cart,
@@ -87,18 +97,129 @@ function setupOrderForm() {
         status: 'pending'
       };
 
-      db.collection('orders').add(order)
-        .then(() => {
-          localStorage.setItem('cart', JSON.stringify([]));
-          updateCartCount();
-          alert('Thank you for your order! You will receive a confirmation soon.');
-          window.location.href = 'index.html';
-        })
-        .catch(error => {
-          alert('Failed to submit order: ' + error.message);
-        });
+      try {
+        // Save order to Firestore
+        await db.collection('orders').doc(orderId).set(order);
+
+        // Send email confirmation
+        await sendOrderConfirmation(order);
+
+        // Show confirmation modal
+        showConfirmationModal(order);
+
+        // Clear cart
+        localStorage.setItem('cart', JSON.stringify([]));
+        updateCartCount();
+      } catch (error) {
+        alert('Failed to submit order: ' + error.message);
+      }
     });
   }
+
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      window.location.href = 'index.html';
+    });
+  }
+
+  if (returnHomeBtn) {
+    returnHomeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      window.location.href = 'index.html';
+    });
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+      window.location.href = 'index.html';
+    }
+  });
+}
+
+function validateForm(name, phone, email, address) {
+  let isValid = true;
+  document.getElementById('name-error').textContent = '';
+  document.getElementById('phone-error').textContent = '';
+  document.getElementById('email-error').textContent = '';
+  document.getElementById('address-error').textContent = '';
+
+  if (!name) {
+    document.getElementById('name-error').textContent = 'Name is required';
+    isValid = false;
+  }
+
+  if (!phone) {
+    document.getElementById('phone-error').textContent = 'Phone number is required';
+    isValid = false;
+  } else if (!/^\+?\d{9,12}$/.test(phone)) {
+    document.getElementById('phone-error').textContent = 'Invalid phone number (e.g., +256123456789)';
+    isValid = false;
+  }
+
+  if (!email) {
+    document.getElementById('email-error').textContent = 'Email is required';
+    isValid = false;
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    document.getElementById('email-error').textContent = 'Invalid email address';
+    isValid = false;
+  }
+
+  if (!address) {
+    document.getElementById('address-error').textContent = 'Address is required';
+    isValid = false;
+  }
+
+  return isValid;
+}
+
+function sendOrderConfirmation(order) {
+  const itemsList = order.items.map(item => 
+    `${item.name} (x${item.quantity}) - UGX ${item.price.toLocaleString()}`
+  ).join('\n');
+
+  const emailParams = {
+    to_email: order.customer.email,
+    customer_name: order.customer.name,
+    order_id: order.orderId,
+    items: itemsList,
+    total: `UGX ${order.total.toLocaleString()}`,
+    address: order.customer.address,
+    phone: order.customer.phone,
+    instructions: order.customer.instructions || 'None',
+    status: order.status
+  };
+
+  return emailjs.send('service_k8mbggr', 'template_xw2h6sm', emailParams)
+    .then(() => {
+      console.log('Order confirmation email sent to:', order.customer.email);
+    })
+    .catch(error => {
+      console.error('Failed to send email:', error);
+      alert('Order placed, but failed to send confirmation email. Contact support.');
+    });
+}
+
+function showConfirmationModal(order) {
+  const modal = document.getElementById('order-confirmation-modal');
+  const details = document.getElementById('confirmation-details');
+  details.innerHTML = `
+    <p><strong>Order #${order.orderId}</strong></p>
+    <p><strong>Name:</strong> ${order.customer.name}</p>
+    <p><strong>Email:</strong> ${order.customer.email}</p>
+    <p><strong>Phone:</strong> ${order.customer.phone}</p>
+    <p><strong>Address:</strong> ${order.customer.address}</p>
+    <p><strong>Instructions:</strong> ${order.customer.instructions || 'None'}</p>
+    <p><strong>Items:</strong></p>
+    <ul>
+      ${order.items.map(item => `<li>${item.name} (x${item.quantity}) - UGX ${item.price.toLocaleString()}</li>`).join('')}
+    </ul>
+    <p><strong>Total:</strong> UGX ${order.total.toLocaleString()}</p>
+    <p><strong>Status:</strong> ${order.status}</p>
+    <p>A confirmation email has been sent to ${order.customer.email}.</p>
+  `;
+  modal.style.display = 'flex';
 }
 
 function getCartTotal() {
