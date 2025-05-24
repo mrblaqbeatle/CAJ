@@ -6,8 +6,12 @@
   <title>CAJ Detergents Uganda - Place Order</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/order.css">
+  <!-- Firebase SDK v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <!-- EmailJS SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/firebase-config.js"></script>
 </head>
 <body>
   <header>
@@ -32,9 +36,7 @@
     <div class="order-container">
       <div class="order-summary">
         <h2>Order Summary</h2>
-        <div id="order-items">
-          <!-- Cart items populated via JavaScript -->
-        </div>
+        <div id="order-items"></div>
         <div class="order-total">
           <p>Total: <span id="order-total">UGX 0</span></p>
         </div>

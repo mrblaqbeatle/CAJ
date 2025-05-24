@@ -1,6 +1,6 @@
 // js/order.js
 // Initialize EmailJS with your public key
-emailjs.init('pgYzRP8y_b1l2VIcg'); // Replace with your EmailJS public key
+emailjs.init('pgYzRP8y_b1l2VIcg');
 
 document.addEventListener('DOMContentLoaded', function() {
   loadCartItems();
@@ -12,58 +12,62 @@ function loadCartItems() {
   const orderItemsContainer = document.getElementById('order-items');
   const orderTotalElement = document.getElementById('order-total');
 
-  if (orderItemsContainer) {
-    if (cart.length === 0) {
-      orderItemsContainer.innerHTML = '<p>Your cart is empty</p>';
-      orderTotalElement.textContent = 'UGX 0';
-      document.querySelector('#order-form button').disabled = true;
-      return;
-    }
-
-    orderItemsContainer.innerHTML = cart.map(item => `
-      <div class="order-item" data-id="${item.productId}">
-        <div class="item-info">
-          <h3>${item.name}</h3>
-          <p>UGX ${item.price.toLocaleString()} each</p>
-        </div>
-        <div class="item-actions">
-          <div class="item-quantity">
-            <button class="quantity-decrease" data-id="${item.productId}">-</button>
-            <span>${item.quantity}</span>
-            <button class="quantity-increase" data-id="${item.productId}">+</button>
-          </div>
-          <button class="remove-item" data-id="${item.productId}">Remove</button>
-        </div>
-      </div>
-    `).join('');
-
-    const total = getCartTotal();
-    orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
-
-    document.querySelectorAll('.quantity-decrease').forEach(button => {
-      button.addEventListener('click', () => {
-        const productId = button.dataset.id;
-        updateCartItemQuantity(productId, cart.find(item => item.productId === productId).quantity - 1);
-        loadCartItems();
-      });
-    });
-
-    document.querySelectorAll('.quantity-increase').forEach(button => {
-      button.addEventListener('click', () => {
-        const productId = button.dataset.id;
-        updateCartItemQuantity(productId, cart.find(item => item.productId === productId).quantity + 1);
-        loadCartItems();
-      });
-    });
-
-    document.querySelectorAll('.remove-item').forEach(button => {
-      button.addEventListener('click', () => {
-        const productId = button.dataset.id;
-        removeFromCart(productId);
-        loadCartItems();
-      });
-    });
+  if (!orderItemsContainer || !orderTotalElement) {
+    console.error('Order items container or total element not found');
+    return;
   }
+
+  if (cart.length === 0) {
+    orderItemsContainer.innerHTML = '<p>Your cart is empty</p>';
+    orderTotalElement.textContent = 'UGX 0';
+    const submitButton = document.querySelector('#order-form button');
+    if (submitButton) submitButton.disabled = true;
+    return;
+  }
+
+  orderItemsContainer.innerHTML = cart.map(item => `
+    <div class="order-item" data-id="${item.productId}">
+      <div class="item-info">
+        <h3>${item.name}</h3>
+        <p>UGX ${item.price.toLocaleString()} each</p>
+      </div>
+      <div class="item-actions">
+        <div class="item-quantity">
+          <button class="quantity-decrease" data-id="${item.productId}">-</button>
+          <span>${item.quantity}</span>
+          <button class="quantity-increase" data-id="${item.productId}">+</button>
+        </div>
+        <button class="remove-item" data-id="${item.productId}">Remove</button>
+      </div>
+    </div>
+  `).join('');
+
+  const total = getCartTotal();
+  orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
+
+  document.querySelectorAll('.quantity-decrease').forEach(button => {
+    button.addEventListener('click', () => {
+      const productId = button.dataset.id;
+      updateCartItemQuantity(productId, cart.find(item => item.productId === productId).quantity - 1);
+      loadCartItems();
+    });
+  });
+
+  document.querySelectorAll('.quantity-increase').forEach(button => {
+    button.addEventListener('click', () => {
+      const productId = button.dataset.id;
+      updateCartItemQuantity(productId, cart.find(item => item.productId === productId).quantity + 1);
+      loadCartItems();
+    });
+  });
+
+  document.querySelectorAll('.remove-item').forEach(button => {
+    button.addEventListener('click', () => {
+      const productId = button.dataset.id;
+      removeFromCart(productId);
+      loadCartItems();
+    });
+  });
 }
 
 function setupOrderForm() {
@@ -72,49 +76,58 @@ function setupOrderForm() {
   const closeModalBtn = document.getElementById('close-confirmation-modal');
   const returnHomeBtn = document.getElementById('return-home');
 
-  if (orderForm) {
-    orderForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const name = document.getElementById('customer-name').value.trim();
-      const phone = document.getElementById('customer-phone').value.trim();
-      const email = document.getElementById('customer-email').value.trim();
-      const address = document.getElementById('delivery-address').value.trim();
-      const instructions = document.getElementById('delivery-instructions').value.trim();
-
-      if (!validateForm(name, phone, email, address)) return;
-
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const total = getCartTotal();
-      const orderId = db.collection('orders').doc().id; // Generate Firestore doc ID
-
-      const order = {
-        orderId, // Store orderId for reference
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        customer: { name, phone, email, address, instructions },
-        items: cart,
-        total,
-        status: 'pending'
-      };
-
-      try {
-        // Save order to Firestore
-        await db.collection('orders').doc(orderId).set(order);
-
-        // Send email confirmation
-        await sendOrderConfirmation(order);
-
-        // Show confirmation modal
-        showConfirmationModal(order);
-
-        // Clear cart
-        localStorage.setItem('cart', JSON.stringify([]));
-        updateCartCount();
-      } catch (error) {
-        alert('Failed to submit order: ' + error.message);
-      }
-    });
+  if (!orderForm) {
+    console.error('Order form not found. Check if #order-form exists in order.html');
+    return;
   }
+
+  orderForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    console.log('Order form submitted'); // Debug submit event
+
+    const name = document.getElementById('customer-name').value.trim();
+    const phone = document.getElementById('customer-phone').value.trim();
+    const email = document.getElementById('customer-email').value.trim();
+    const address = document.getElementById('delivery-address').value.trim();
+    const instructions = document.getElementById('delivery-instructions').value.trim();
+
+    if (!validateForm(name, phone, email, address)) {
+      console.log('Validation failed');
+      return;
+    }
+
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    if (cart.length === 0) {
+      alert('Your cart is empty. Please add items before submitting.');
+      return;
+    }
+
+    const total = getCartTotal();
+    const orderId = db.collection('orders').doc().id;
+
+    const order = {
+      orderId,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      customer: { name, phone, email, address, instructions },
+      items: cart,
+      total,
+      status: 'pending'
+    };
+
+    try {
+      console.log('Saving order to Firestore:', order);
+      await db.collection('orders').doc(orderId).set(order);
+      console.log('Order saved, sending email');
+      await sendOrderConfirmation(order);
+      console.log('Showing confirmation modal');
+      showConfirmationModal(order);
+      localStorage.setItem('cart', JSON.stringify([]));
+      updateCartCount();
+    } catch (error) {
+      console.error('Order submission failed:', error);
+      alert('Failed to submit order: ' + error.message);
+    }
+  });
 
   if (closeModalBtn) {
     closeModalBtn.addEventListener('click', () => {
@@ -130,12 +143,14 @@ function setupOrderForm() {
     });
   }
 
-  window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.style.display = 'none';
-      window.location.href = 'index.html';
-    }
-  });
+  if (modal) {
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        window.location.href = 'index.html';
+      }
+    });
+  }
 }
 
 function validateForm(name, phone, email, address) {
@@ -180,15 +195,15 @@ function sendOrderConfirmation(order) {
   ).join('\n');
 
   const emailParams = {
-    to_email: order.customer.email,
-    customer_name: order.customer.name,
-    order_id: order.orderId,
-    items: itemsList,
-    total: `UGX ${order.total.toLocaleString()}`,
-    address: order.customer.address,
-    phone: order.customer.phone,
-    instructions: order.customer.instructions || 'None',
-    status: order.status
+    'to_email': order.customer.email,
+    'customer_name': order.customer.name,
+    'order_id': order.orderId,
+    'items': itemsList,
+    'total': `UGX ${order.total.toLocaleString()}`,
+    'address': order.customer.address,
+    'phone': order.customer.phone,
+    'instructions': order.customer.instructions || 'None',
+    'status': order.status
   };
 
   return emailjs.send('service_k8mbggr', 'template_xw2h6sm', emailParams)
@@ -203,7 +218,15 @@ function sendOrderConfirmation(order) {
 
 function showConfirmationModal(order) {
   const modal = document.getElementById('order-confirmation-modal');
+  if (!modal) {
+    console.error('Confirmation modal not found');
+    return;
+  }
   const details = document.getElementById('confirmation-details');
+  if (!details) {
+    console.error('Confirmation details element not found');
+    return;
+  }
   details.innerHTML = `
     <p><strong>Order #${order.orderId}</strong></p>
     <p><strong>Name:</strong> ${order.customer.name}</p>
