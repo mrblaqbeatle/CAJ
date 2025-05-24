@@ -40,7 +40,7 @@ function loadCartItems() {
     }
 
     // Debug cart contents
-    console.log('Cart items:', cart);
+    console.log('Cart items before rendering:', cart);
 
     orderItemsContainer.innerHTML = cart.map(item => `
         <div class="order-item" data-id="${item.id}">
@@ -62,45 +62,44 @@ function loadCartItems() {
     const total = getCartTotal();
     orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
 
-    // Attach event listeners for quantity controls
-    document.querySelectorAll('.quantity-decrease').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const productId = button.dataset.id;
+    // Use event delegation to handle clicks
+    orderItemsContainer.addEventListener('click', (e) => {
+        const target = e.target;
+        const productId = target.dataset.id;
+
+        if (!productId) return; // Ignore clicks without a data-id
+
+        e.preventDefault();
+
+        const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+        console.log('Current cart during click:', currentCart);
+
+        if (target.classList.contains('quantity-decrease')) {
             console.log('Decrease quantity for product:', productId);
-            const item = cart.find(item => item.id === productId);
+            const item = currentCart.find(item => item.id === productId);
             if (item) {
                 updateCartItemQuantity(productId, item.quantity - 1);
+                console.log('Cart after decrease:', JSON.parse(localStorage.getItem('cart')));
                 loadCartItems();
             } else {
                 console.error('Item not found in cart:', productId);
             }
-        });
-    });
-
-    document.querySelectorAll('.quantity-increase').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const productId = button.dataset.id;
+        } else if (target.classList.contains('quantity-increase')) {
             console.log('Increase quantity for product:', productId);
-            const item = cart.find(item => item.id === productId);
+            const item = currentCart.find(item => item.id === productId);
             if (item) {
                 updateCartItemQuantity(productId, item.quantity + 1);
+                console.log('Cart after increase:', JSON.parse(localStorage.getItem('cart')));
                 loadCartItems();
             } else {
                 console.error('Item not found in cart:', productId);
             }
-        });
-    });
-
-    document.querySelectorAll('.remove-item').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const productId = button.dataset.id;
+        } else if (target.classList.contains('remove-item')) {
             console.log('Remove item:', productId);
             removeFromCart(productId);
+            console.log('Cart after remove:', JSON.parse(localStorage.getItem('cart')));
             loadCartItems();
-        });
+        }
     });
 }
 
