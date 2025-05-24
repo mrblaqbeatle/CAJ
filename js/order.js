@@ -3,14 +3,12 @@
 emailjs.init('pgYzRP8y_b1l2VIcg');
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Check if Firebase is loaded
     if (typeof firebase === 'undefined' || !firebase.firestore) {
         console.error('Firebase is not loaded. Check firebase-config.js and script includes in order.html');
         alert('Failed to initialize: Firebase not loaded. Please contact support.');
         return;
     }
 
-    // Check if db is defined
     if (typeof db === 'undefined') {
         console.error('Firestore db is not defined. Ensure firebase-config.js initializes db');
         alert('Failed to initialize: Firestore not available. Please contact support.');
@@ -39,8 +37,7 @@ function loadCartItems() {
         return;
     }
 
-    // Debug cart contents
-    console.log('Cart items before rendering:', cart);
+    console.log('Rendering cart items:', cart);
 
     orderItemsContainer.innerHTML = cart.map(item => `
         <div class="order-item" data-id="${item.id}">
@@ -62,42 +59,43 @@ function loadCartItems() {
     const total = getCartTotal();
     orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
 
-    // Use event delegation to handle clicks
-    orderItemsContainer.addEventListener('click', (e) => {
+    // Use event delegation for all button actions
+    orderItemsContainer.addEventListener('click', function (e) {
         const target = e.target;
         const productId = target.dataset.id;
 
-        if (!productId) return; // Ignore clicks without a data-id
+        if (!productId) {
+            console.log('Click ignored: No productId found');
+            return;
+        }
 
-        e.preventDefault();
+        console.log('Button clicked:', { productId, action: target.className });
 
         const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
-        console.log('Current cart during click:', currentCart);
+        const item = currentCart.find(item => item.id === productId);
+
+        if (!item) {
+            console.error('Item not found in cart:', productId);
+            return;
+        }
 
         if (target.classList.contains('quantity-decrease')) {
-            console.log('Decrease quantity for product:', productId);
-            const item = currentCart.find(item => item.id === productId);
-            if (item) {
-                updateCartItemQuantity(productId, item.quantity - 1);
-                console.log('Cart after decrease:', JSON.parse(localStorage.getItem('cart')));
-                loadCartItems();
+            const newQuantity = item.quantity - 1;
+            console.log(`Decreasing quantity for ${productId} from ${item.quantity} to ${newQuantity}`);
+            if (newQuantity > 0) {
+                updateCartItemQuantity(productId, newQuantity); // Decrease by 1, keep if > 0
             } else {
-                console.error('Item not found in cart:', productId);
+                removeFromCart(productId); // Remove only if quantity becomes 0
             }
+            loadCartItems();
         } else if (target.classList.contains('quantity-increase')) {
-            console.log('Increase quantity for product:', productId);
-            const item = currentCart.find(item => item.id === productId);
-            if (item) {
-                updateCartItemQuantity(productId, item.quantity + 1);
-                console.log('Cart after increase:', JSON.parse(localStorage.getItem('cart')));
-                loadCartItems();
-            } else {
-                console.error('Item not found in cart:', productId);
-            }
+            const newQuantity = item.quantity + 1;
+            console.log(`Increasing quantity for ${productId} from ${item.quantity} to ${newQuantity}`);
+            updateCartItemQuantity(productId, newQuantity); // Increase by 1
+            loadCartItems();
         } else if (target.classList.contains('remove-item')) {
-            console.log('Remove item:', productId);
+            console.log(`Removing item ${productId}`);
             removeFromCart(productId);
-            console.log('Cart after remove:', JSON.parse(localStorage.getItem('cart')));
             loadCartItems();
         }
     });
@@ -129,7 +127,6 @@ function setupOrderForm() {
             return;
         }
 
-        // Debug form data
         console.log('Form data:', { name, phone, email, address, instructions });
 
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -151,12 +148,10 @@ function setupOrderForm() {
         };
 
         try {
-            // Save to Firestore
             console.log('Saving order to Firestore:', order);
             await db.collection('orders').doc(orderId).set(order);
             console.log('Order saved successfully');
 
-            // Attempt to send email
             try {
                 console.log('Sending email...');
                 await sendOrderConfirmation(order);
@@ -166,11 +161,9 @@ function setupOrderForm() {
                 alert('Order placed, but failed to send confirmation email: ' + emailError.message);
             }
 
-            // Show confirmation modal regardless of email success
             console.log('Showing confirmation modal');
             showConfirmationModal(order);
 
-            // Clear cart
             localStorage.setItem('cart', JSON.stringify([]));
             updateCartCount();
         } catch (error) {
@@ -261,10 +254,8 @@ function sendOrderConfirmation(order) {
         'status': order.status
     };
 
-    // Debug email params
     console.log('Email params before sending:', emailParams);
 
-    // Final validation for email
     if (!emailParams.to_email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailParams.to_email)) {
         console.error('Invalid or empty to_email in emailParams:', emailParams.to_email);
         throw new Error('Cannot send email: Recipient address is invalid or empty');

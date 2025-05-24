@@ -1,6 +1,18 @@
 // js/main.js
 // Shared functionality across all pages
 
+// Migrate cart data from productId to id
+(function migrateCartData() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const updatedCart = cart.map(item => {
+        if (item.productId && !item.id) {
+            return { ...item, id: item.productId, productId: undefined };
+        }
+        return item;
+    });
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+})();
+
 // Initialize cart if it doesn't exist
 if (!localStorage.getItem('cart')) {
     localStorage.setItem('cart', JSON.stringify([]));
@@ -8,21 +20,14 @@ if (!localStorage.getItem('cart')) {
 
 // Navigation active link highlighting
 document.addEventListener('DOMContentLoaded', function () {
-    // Get current page URL
     const currentPage = window.location.pathname.split('/').pop();
-
-    // Find all nav links
     const navLinks = document.querySelectorAll('nav ul li a');
-
-    // Highlight the current page link
     navLinks.forEach(link => {
         const linkPage = link.getAttribute('href').split('/').pop();
         if (linkPage === currentPage) {
             link.classList.add('active');
         }
     });
-
-    // Update cart count in header if cart element exists
     updateCartCount();
 });
 
@@ -32,35 +37,29 @@ function updateCartCount() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const cartCountElements = document.querySelectorAll('#cart-count, .cart-count');
     cartCountElements.forEach(el => {
-        el.textContent = totalItems;
+        if (el) el.textContent = totalItems;
     });
+    console.log('Cart count updated:', totalItems);
 }
 
 // Function to add product to cart
-function addToCart(productId, productName, price, quantity = 1) {
+function addToCart(productId, productName, price, quantity = 1, image = '') {
+    if (!productId) {
+        console.error('Invalid productId:', productId);
+        throw new Error('Product ID is required');
+    }
+
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-    // Check if product already in cart
     const existingItem = cart.find(item => item.id === productId);
-
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
-        cart.push({
-            id: productId,
-            name: productName,
-            price: price,
-            quantity: quantity
-        });
+        cart.push({ id: productId, name: productName, price: price, quantity: quantity, image: image });
     }
-
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-
-    // If on shop page, show confirmation
-    if (window.location.pathname.includes('shop.html')) {
-        alert(`${productName} added to cart!`);
-    }
+    console.log('Cart after adding item:', cart);
+    // Removed alert since badge updates are sufficient
 }
 
 // Function to remove item from cart
@@ -69,21 +68,24 @@ function removeFromCart(productId) {
     cart = cart.filter(item => item.id !== productId);
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
+    console.log('Cart after removing item:', cart);
 }
 
 // Function to update cart item quantity
 function updateCartItemQuantity(productId, newQuantity) {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     const item = cart.find(item => item.id === productId);
-
     if (item) {
         if (newQuantity <= 0) {
-            cart = cart.filter(item => item.id !== productId);
+            cart = cart.filter(item => item.id !== productId); // Remove only if quantity becomes 0
         } else {
             item.quantity = newQuantity;
         }
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartCount();
+        console.log('Cart after updating quantity:', cart);
+    } else {
+        console.error('Item not found for quantity update:', productId);
     }
 }
 
