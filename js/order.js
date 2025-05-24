@@ -39,6 +39,9 @@ function loadCartItems() {
         return;
     }
 
+    // Debug cart contents
+    console.log('Cart items:', cart);
+
     orderItemsContainer.innerHTML = cart.map(item => `
         <div class="order-item" data-id="${item.id}">
             <div class="item-info">
@@ -59,25 +62,42 @@ function loadCartItems() {
     const total = getCartTotal();
     orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
 
+    // Attach event listeners for quantity controls
     document.querySelectorAll('.quantity-decrease').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
             const productId = button.dataset.id;
-            updateCartItemQuantity(productId, cart.find(item => item.id === productId).quantity - 1);
-            loadCartItems();
+            console.log('Decrease quantity for product:', productId);
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                updateCartItemQuantity(productId, item.quantity - 1);
+                loadCartItems();
+            } else {
+                console.error('Item not found in cart:', productId);
+            }
         });
     });
 
     document.querySelectorAll('.quantity-increase').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
             const productId = button.dataset.id;
-            updateCartItemQuantity(productId, cart.find(item => item.id === productId).quantity + 1);
-            loadCartItems();
+            console.log('Increase quantity for product:', productId);
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                updateCartItemQuantity(productId, item.quantity + 1);
+                loadCartItems();
+            } else {
+                console.error('Item not found in cart:', productId);
+            }
         });
     });
 
     document.querySelectorAll('.remove-item').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
             const productId = button.dataset.id;
+            console.log('Remove item:', productId);
             removeFromCart(productId);
             loadCartItems();
         });
@@ -110,7 +130,7 @@ function setupOrderForm() {
             return;
         }
 
-        // Log form data to debug empty email
+        // Debug form data
         console.log('Form data:', { name, phone, email, address, instructions });
 
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -132,12 +152,26 @@ function setupOrderForm() {
         };
 
         try {
+            // Save to Firestore
             console.log('Saving order to Firestore:', order);
             await db.collection('orders').doc(orderId).set(order);
-            console.log('Order saved successfully, sending email');
-            await sendOrderConfirmation(order);
+            console.log('Order saved successfully');
+
+            // Attempt to send email
+            try {
+                console.log('Sending email...');
+                await sendOrderConfirmation(order);
+                console.log('Email sent successfully');
+            } catch (emailError) {
+                console.error('Email failed, but order was saved:', emailError);
+                alert('Order placed, but failed to send confirmation email: ' + emailError.message);
+            }
+
+            // Show confirmation modal regardless of email success
             console.log('Showing confirmation modal');
             showConfirmationModal(order);
+
+            // Clear cart
             localStorage.setItem('cart', JSON.stringify([]));
             updateCartCount();
         } catch (error) {
@@ -228,13 +262,15 @@ function sendOrderConfirmation(order) {
         'status': order.status
     };
 
-    // Final validation before sending
+    // Debug email params
+    console.log('Email params before sending:', emailParams);
+
+    // Final validation for email
     if (!emailParams.to_email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailParams.to_email)) {
         console.error('Invalid or empty to_email in emailParams:', emailParams.to_email);
         throw new Error('Cannot send email: Recipient address is invalid or empty');
     }
 
-    console.log('Sending email with params:', emailParams);
     return emailjs.send('service_k8mbggr', 'template_xw2h6sm', emailParams)
         .then((response) => {
             console.log('Order confirmation email sent to:', order.customer.email, 'Response:', response.status, response.text);
@@ -242,7 +278,6 @@ function sendOrderConfirmation(order) {
         })
         .catch((error) => {
             console.error('Failed to send email:', error.status, error.text);
-            alert('Order placed, but failed to send confirmation email. Error: ' + (error.text || error.message || 'Unknown error') + '. Contact support.');
             throw error;
         });
 }
@@ -274,4 +309,5 @@ function showConfirmationModal(order) {
         <p>A confirmation email has been sent to ${order.customer.email}.</p>
     `;
     modal.style.display = 'flex';
+    console.log('Modal displayed');
 }
