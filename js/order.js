@@ -37,8 +37,9 @@ function loadCartItems() {
         return;
     }
 
-    console.log('Rendering cart items:', cart);
+    console.log('Rendering cart items with latest state:', cart);
 
+    // Render with input field for quantity
     orderItemsContainer.innerHTML = cart.map(item => `
         <div class="order-item" data-id="${item.id}">
             <div class="item-info">
@@ -47,9 +48,7 @@ function loadCartItems() {
             </div>
             <div class="item-actions">
                 <div class="item-quantity">
-                    <button class="quantity-decrease" data-id="${item.id}">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="quantity-increase" data-id="${item.id}">+</button>
+                    <input type="number" class="quantity-input" data-id="${item.id}" value="${item.quantity}" min="1" style="width: 60px;">
                 </div>
                 <button class="remove-item" data-id="${item.id}">Remove</button>
             </div>
@@ -59,7 +58,20 @@ function loadCartItems() {
     const total = getCartTotal();
     orderTotalElement.textContent = `UGX ${total.toLocaleString()}`;
 
-    // Use event delegation for all button actions
+    // Add event listener for quantity input changes
+    orderItemsContainer.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function (e) {
+            const productId = e.target.dataset.id;
+            let newQuantity = parseInt(e.target.value) || 1; // Default to 1 if invalid
+            if (newQuantity < 1) newQuantity = 1; // Ensure minimum is 1
+
+            console.log(`Updating quantity for ${productId} to ${newQuantity}`);
+            updateCartItemQuantity(productId, newQuantity);
+            loadCartItems(); // Re-render to update UI and total
+        });
+    });
+
+    // Use event delegation for remove button
     orderItemsContainer.addEventListener('click', function (e) {
         const target = e.target;
         const productId = target.dataset.id;
@@ -69,31 +81,7 @@ function loadCartItems() {
             return;
         }
 
-        console.log('Button clicked:', { productId, action: target.className });
-
-        const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
-        const item = currentCart.find(item => item.id === productId);
-
-        if (!item) {
-            console.error('Item not found in cart:', productId);
-            return;
-        }
-
-        if (target.classList.contains('quantity-decrease')) {
-            const newQuantity = item.quantity - 1;
-            console.log(`Decreasing quantity for ${productId} from ${item.quantity} to ${newQuantity}`);
-            if (newQuantity > 0) {
-                updateCartItemQuantity(productId, newQuantity); // Decrease by 1, keep if > 0
-            } else {
-                removeFromCart(productId); // Remove only if quantity becomes 0
-            }
-            loadCartItems();
-        } else if (target.classList.contains('quantity-increase')) {
-            const newQuantity = item.quantity + 1;
-            console.log(`Increasing quantity for ${productId} from ${item.quantity} to ${newQuantity}`);
-            updateCartItemQuantity(productId, newQuantity); // Increase by 1
-            loadCartItems();
-        } else if (target.classList.contains('remove-item')) {
+        if (target.classList.contains('remove-item')) {
             console.log(`Removing item ${productId}`);
             removeFromCart(productId);
             loadCartItems();
@@ -255,6 +243,7 @@ function sendOrderConfirmation(order) {
     };
 
     console.log('Email params before sending:', emailParams);
+    console.log('Sending to emailjs with to_email:', emailParams.to_email); // Debug right before send
 
     if (!emailParams.to_email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailParams.to_email)) {
         console.error('Invalid or empty to_email in emailParams:', emailParams.to_email);
@@ -263,7 +252,7 @@ function sendOrderConfirmation(order) {
 
     return emailjs.send('service_k8mbggr', 'template_xw2h6sm', emailParams)
         .then((response) => {
-            console.log('Order confirmation email sent to:', order.customer.email, 'Response:', response.status, response.text);
+            console.log('Order confirmation email sent to:', emailParams.to_email, 'Response:', response.status, response.text);
             return response;
         })
         .catch((error) => {

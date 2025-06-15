@@ -236,3 +236,34 @@ h1 {
         align-items: center;
     }
 }
+
+/* css/order.css (add to the end of the file) */
+.item-quantity .quantity-input {
+    width: 60px; /* Matches the inline style from HTML, adjustable if needed */
+    padding: 0.4rem 0.5rem; /* Slightly less padding than form inputs to fit button context */
+    text-align: center;
+    border: 1px solid var(--light-gray); /* Matches other input borders */
+    border-radius: 4px; /* Consistent with buttons and inputs */
+    font-size: 0.9rem; /* Matches item-info p and remove-item */
+    font-family: inherit; /* Inherits from parent for consistency */
+    color: var(--dark-color); /* Matches form labels for text */
+    background-color: white; /* Matches order-summary background */
+    outline: none; /* Remove default focus outline */
+    box-sizing: border-box; /* Ensure padding doesn’t exceed width */
+    margin: 0 0.5rem; /* Matches spacing around original span */
+}
+
+.item-quantity .quantity-input:focus {
+    border-color: var(--primary-color); /* Matches h2 and h3 colors for focus */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow, consistent with box-shadow */
+}
+
+.item-quantity .quantity-input::-webkit-inner-spin-button,
+.item-quantity .quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none; /* Hide spinner arrows in Webkit browsers */
+    margin: 0;
+}
+
+.item-quantity .quantity-input {
+    -moz-appearance: textfield; /* Hide spinner arrows in Firefox */
+}
