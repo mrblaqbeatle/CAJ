@@ -38,16 +38,16 @@ function loadProducts(category = 'all', sortBy = 'createdAt-desc') {
 function displayProduct(product) {
     const productGrid = document.querySelector('.product-grid');
     const card = document.createElement('div');
-    card.className = 'shop-product-card';
+    card.className = 'product-card';
     card.innerHTML = `
-        <div class="shop-product-image">
+        <div class="product-image">
             <img src="${product.image || 'images/placeholder.png'}" alt="${product.name}">
         </div>
-        <div class="shop-product-info">
+        <div class="product-info">
             <h3>${product.name}</h3>
-            <p class="shop-product-price">UGX ${parseFloat(product.price).toLocaleString()}</p>
+            <p>UGX ${parseFloat(product.price).toLocaleString()} each</p>
             <p>${product.category}</p>
-            <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>
+            <button class="btn" data-id="${product.id}">Add to Cart</button>
         </div>
     `;
     productGrid.appendChild(card);
@@ -67,7 +67,7 @@ function setupFilters() {
 }
 
 function attachCartButtonListeners() {
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    document.querySelectorAll('.btn').forEach(button => {
         // Remove existing listeners to prevent duplicates
         button.removeEventListener('click', handleAddToCart);
         button.addEventListener('click', handleAddToCart);
@@ -77,10 +77,9 @@ function attachCartButtonListeners() {
 function handleAddToCart(event) {
     const button = event.target;
     const productId = button.dataset.id;
-    const card = button.closest('.shop-product-card');
+    const card = button.closest('.product-card');
     const name = card.querySelector('h3').textContent;
-    // Robust price parsing
-    const priceText = card.querySelector('.shop-product-price').textContent.replace('UGX ', '').replace(/,/g, '');
+    const priceText = card.querySelector('p:nth-child(2)').textContent.replace('UGX ', '').replace(/,/g, '');
     const price = parseFloat(priceText);
     const image = card.querySelector('img').src;
 
@@ -90,7 +89,6 @@ function handleAddToCart(event) {
         return;
     }
 
-    // Use main.js's addToCart function
     addToCart(productId, name, price, 1, image);
 }
 
